@@ -11,10 +11,8 @@
 #' contains the points that the respective home and away teams scored in n
 #' subsequent matches
 #' @param lambda_in a numerical vector, learning rate values to consider in
-#' the grid optimization, default value: seq(0, 0.1, 0.005)
-#' @param delta_in a numerical vector, learning rate values to consider in
-#' the grid optimization, default value: seq(0, 1, 0.05)
-#' @param k0_in a constant, logarithmic base, default value: 10
+#' the grid optimization, default value: seq(0, 3, 0.25)
+#' @param k0_in a constant, eefault value: seq(1, 10, 1)
 #' @param b_in a constant, logarithmic base, default value: 10
 #' @param d_in a constant, default value: 400
 #' @return a dataframe with the results of the grid optimization,
@@ -28,8 +26,8 @@
 #' @export
 
 
-optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(1, 2, by = 0.25),
-                                delta_in = seq(0.05, 0.55, by = 0.05), k0_in = 10, c_in = 10, d_in = 400) {
+optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(0, 3, 0.25),
+                                 k0_in = seq(1, 10, 1), c_in = 10, d_in = 400) {
 
 
   # ================================================================================
@@ -71,16 +69,10 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
     stop("'lambda_in' is required to be a vector or a real number")
   }
 
-  # requirements 'delta_in'
-  if (hasArg(delta_in) & (!is.numeric(delta_in) |
-                          (is.numeric(delta_in) & is.matrix(delta_in)))) {
-    stop("'delta_in' is required to be a vector or a real number")
-  }
-
-  # requirements 'k0_in'
-  if (hasArg(k0_in) & (!is.numeric(k0_in) |
-                      (is.numeric(k0_in) & length(k0_in) != 1))) {
-    stop("'k0_in' is required to be a real number")
+  # requirements 'k0'
+  if (hasArg(k0) & (!is.numeric(k0) |
+                           (is.numeric(k0) & is.matrix(k0)))) {
+    stop("'k0' is required to be a vector or a real number")
   }
 
   # requirements 'c_in'
@@ -103,28 +95,28 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
 
   lambda_seq_l <- length(lambda_in)
 
-  delta_seq_l <- length(delta_in)
+  k0_seq_l <- length(k0_in)
 
-  avg_sq_e <- matrix(0, nrow = lambda_seq_l, ncol = delta_seq_l)
+  avg_sq_e <- matrix(0, nrow = lambda_seq_l, ncol = k0_seq_l)
 
 
   # perform grid optimization
 
 
   for (i1 in 1:lambda_seq_l) {
-    for (i2 in 1:delta_seq_l) {
+    for (i2 in 1:k0_seq_l) {
       current_lambda <- lambda_in[i1]
-      current_delta <- delta_in[i2]
+      current_k0 <- k0_in[i2]
       result <- calculate_elo_ratings(teams = teams,
                                      outcomes = outcomes,
                                      lambda = current_lambda,
-                                     delta = current_delta,
-                                     k0 = k0_in, c = c_in, d = d_in, return_e = TRUE)
+                                     k0 = k0_in,
+                                     c = c_in, d = d_in, return_e = TRUE)
       avg_sq_e[i1, i2] <- result
       message(paste0("calculated result for ",
                      "lambda = ", current_lambda,
                      ", ",
-                     "delta = ", current_delta))
+                     "k0 = ", current_k0))
     }
   }
 
@@ -132,8 +124,8 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
   # prepare result
   result <- data.frame("mean squared error" = as.vector(avg_sq_e),
                        "lambda" = lambda_in[rep(1:lambda_seq_l, delta_seq_l)],
-                       "delta" = delta_in[rep(1:delta_seq_l,
-                                              lambda_seq_l)[order(rep(1:delta_seq_l,
+                       "k0" = k0_in[rep(1:k0_seq_l,
+                                              lambda_seq_l)[order(rep(1:k0_seq_l,
                                                                       lambda_seq_l))]])
 
   return(result)

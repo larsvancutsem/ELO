@@ -10,7 +10,6 @@
 #' contains the points that the respective home and away teams scored in n
 #' subsequent matches
 #' @param lambda a parameter tb optimized default = 1
-#' @param delta a parameter tb optimized default = 0.05
 #' @param k0 a constant for scaling default = 10
 #' @param c a constant for scaling default = 10
 #' @param d a constant for scaling default = 400
@@ -28,7 +27,7 @@
 #' @export
 
 
-calculate_elo_ratings <- function(teams = NULL, outcomes= NULL, lambda = 1, delta = 0.05, k0 = 1, c = 10, d = 400, return_e = FALSE) {
+calculate_elo_ratings <- function(teams = NULL, outcomes= NULL, lambda = 1, k0 = 1, c = 10, d = 400, return_e = FALSE) {
 
 
   # ================================================================================
@@ -67,11 +66,6 @@ calculate_elo_ratings <- function(teams = NULL, outcomes= NULL, lambda = 1, delt
   # requirements 'lambda'
   if (hasArg(lambda) & (!is.numeric(lambda) | (is.numeric(lambda) & length(lambda) != 1))) {
     stop("'lambda' is required to be a real number")
-  }
-
-  # requirements 'delta'
-  if (hasArg(detlta) & (!is.numeric(delta) | (is.numeric(delta) & length(delta) != 1))) {
-    stop("'delta' is required to be a real number")
   }
 
   # requirements 'k0'
@@ -141,8 +135,8 @@ calculate_elo_ratings <- function(teams = NULL, outcomes= NULL, lambda = 1, delt
     abs_error[[i]] <- abs(score_H - e_score_H) + abs(score_A - e_score_A)
 
     # update ratings
-    team_list[[home_team]] <- append(H_list, team_rate_H + (k0 * (1 + delta)^lambda) * (score_H - e_score_H))
-    team_list[[away_team]] <- append(A_list, team_rate_A + (k0 * (1 + delta)^lambda) * (score_A - e_score_A))
+    team_list[[home_team]] <- append(H_list, team_rate_H + (k0 * (1 + abs(score_diff))^lambda) * (score_H - e_score_H))
+    team_list[[away_team]] <- append(A_list, team_rate_A + (k0 * (1 + abs(score_diff))^lambda) * (score_A - e_score_A))
 
   }
 
