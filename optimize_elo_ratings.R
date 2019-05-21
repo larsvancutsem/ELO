@@ -26,7 +26,7 @@
 #' @export
 
 
-optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(0, 3, 0.25),
+optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(0, 5, 0.5),
                                  k0_in = seq(1, 10, 1), c_in = 10, d_in = 400) {
 
 
@@ -70,9 +70,9 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
   }
 
   # requirements 'k0'
-  if (hasArg(k0) & (!is.numeric(k0) |
-                           (is.numeric(k0) & is.matrix(k0)))) {
-    stop("'k0' is required to be a vector or a real number")
+  if (hasArg(k0_in) & (!is.numeric(k0_in) |
+                           (is.numeric(k0_in) & is.matrix(k0_in)))) {
+    stop("'k0_in' is required to be a vector or a real number")
   }
 
   # requirements 'c_in'
@@ -110,7 +110,7 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
       result <- calculate_elo_ratings(teams = teams,
                                      outcomes = outcomes,
                                      lambda = current_lambda,
-                                     k0 = k0_in,
+                                     k0 = current_k0,
                                      c = c_in, d = d_in, return_e = TRUE)
       avg_sq_e[i1, i2] <- result
       message(paste0("calculated result for ",
@@ -123,7 +123,7 @@ optimize_elo_ratings <- function(teams = NULL, outcomes = NULL, lambda_in = seq(
 
   # prepare result
   result <- data.frame("mean squared error" = as.vector(avg_sq_e),
-                       "lambda" = lambda_in[rep(1:lambda_seq_l, delta_seq_l)],
+                       "lambda" = lambda_in[rep(1:lambda_seq_l, k0_seq_l)],
                        "k0" = k0_in[rep(1:k0_seq_l,
                                               lambda_seq_l)[order(rep(1:k0_seq_l,
                                                                       lambda_seq_l))]])
